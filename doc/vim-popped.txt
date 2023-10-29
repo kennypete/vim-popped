@@ -1,0 +1,343 @@
+*vim-popped.txt*             Vim commands using popups                    *popped*
+
+
+==============================================================================
+CONTENTS                                                       *popped-contents*
+------------------------------------------------------------------------------
+
+1. Introduction .......................................... |popped-introduction|
+2. Versions - vim9script and vimscript ....................... |popped-versions|
+3. Commands .................................................. |popped-commands|
+4. Mappings .................................................. |popped-mappings|
+5. Border characters ...................................... |popped-borderchars|
+6. Licence .................................................... |popped-licence|
+
+
+==============================================================================
+1.                                                         *popped-introduction*
+INTRODUCTION
+
+This plugin provides four commands that use Vim's |builtin| |popup-functions|.
+Vim's |popup-intro| provides examples of when you may want to use popup
+windows, so that is not explained here.  The Screenshots and Mappings
+sections of https://github.com/kennypete/vim-popped/README.pdf illustrate how
+to use the commands, and ways they may be useful.
+
+==============================================================================
+2.                                                             *popped-versions*
+VIM VERSIONS - VIM9SCRIPT AND VIMSCRIPT
+
+The functions and commands have been built in both vim9script and vimscript.
+The main script in vim-popped/plugins/vim-popped.vim uses |vim9-mix|
+capability, determining the appropriate script version based on |v:version| and
+|has()|.  It tests for 8.2 and patch >=4057, which, if present, vim9script
+functions/commands are used.  If 8.2 and patch <4057, but >=3434, vimscript
+functions/commands are used.
+
+NOTE: vim-popped neither works with Vim versions before 8.2 with patch 3434
+      because the Vim versions prior to that lack patches required to render
+      popup windows produced by vim-popped.  It also does not work with Neovim
+      (of any version).  That is because Neovim does not have any of Vim's
+      |popup-functions|.
+
+Warnings are provided if non-supported Vim versions are opened.  If that's
+annoying, it can be turned off by having the variable g:popped_nowarn
+defined (in .vimrc).  That variable need only exist; its value is irrelevant
+because the warning echo is only provided if the variable does not
+exist (i.e., it relies on |exists()|).
+
+==============================================================================
+3.                                                             *popped-commands*
+COMMANDS
+
+There are four commands with associated |user-functions|, which have matching
+initialisms.  Abbreviations are also provided, which also match the
+functions' initialisms:
+
+	Command               Function   Abbreviation
+	-------               ---------  ------------
+	CpDialogCommand       Fpdc()     Cpdc
+	CpDialogCommandTimer  Fpdct()    Cpdct
+	CpDialogTitleCommand  Fpdtc()    Cpdtc
+	CpMenuBuffers         Fpmb()     Cpmb
+
+So, the command CpDialogCommand has an cmdline abbreviation (|cnoreabbrev|)
+Cpdc, which is an initialism for "Command popup dialog command", and the
+related function is Fpdc(), which, similarly, stands for "Function popup
+dialog command").
+
+For annotated screenshot explanations of the commands refer either:
+	  https://github.com/kennypete/vim-popped/README.pdf
+	or
+	  https://github.com/kennypete/vim-popped/README.adoc
+
+What each command does is explained in brief, below.
+
+CpDialogCommand  Cpdc  Fpdc()                           *popped-CpDialogCommand*
+-----------------------------
+This creates a |popup_dialog| with the command on the title line and the
+output of the command in the popup window.  For example, take the command:
+
+	:CpDialogCommand pwd
+
+It will return something like:
+
+	 :pwd             X
+	  /home/kennypete
+	———————————————————
+
+The command name, CpDialogCommand, is long for ease of readability.  Normally,
+it will not be typed; rather an abbreviation, or perhaps a mapping created by
+the user, will be used.  The former, i.e., the abbreviation Cpdc, which is an
+initialism for "Command popup dialog command" is defined in vim-popped.vim
+as an abbreviation using |:cnoreabbrev|.
+
+The popup used in this instance is a dialog - refer |popup_dialog()|.  That
+enables some things, e.g., drag: 1, as default, which enables dragging the
+popup with a mouse.  And it means the second argument (a dictionary -
+refer |popup_create-arguments|) needs only a few options specified.
+In this instance:
+
+	(1) An 'X' is set in the top right corner (using close: "button"), and
+	(2) <Esc>, x, or CTRL-C may be used to close the popup - refer
+	    |popup_filter_yesno()| - that's a pre-defined filter, which
+	    returns 1 for y or Y and 0 for n or N (and works with x,
+	    <Esc>, and CTRL-C, which similarly close the popup).
+
+CpDialogCommandTimer  Cpdct  Fpdct()               *popped-CpDialogCommandTimer*
+------------------------------------
+This creates a |popup_dialog| with the command on the title line and the time,
+in seconds, that it takes to run command, in the popup window.  For example,
+take the command:
+
+	:CpDialogCommandTimer pwd
+
+That will return something like:
+
+	 :pwd                X
+	    0.000015 seconds
+	——————————————————————
+
+The command name, CpDialogCommandTimer, is long for ease of readability.
+Normally, it will not be typed; rather an abbreviation, or perhaps a mapping,
+will be used.  The former, Cpdct, an initialism for "Command popup dialog
+command timer" is defined in vim-popped.vim as an abbreviation using
+|:cnoreabbrev|.
+
+The popup used in this instance is a dialog - refer |popup_dialog()|.  That
+enables some things, e.g., drag: 1, as default, which enables dragging the
+popup with a mouse.  And it means the second argument (a dictionary -
+refer |popup_create-arguments|) needs only a few options specified.
+In this instance:
+
+	(1) An 'X' is set in the top right corner (using close: "button"), and
+	(2) <Esc>, x, or CTRL-C may be used to close the popup - refer
+	    |popup_filter_yesno()| - that's a pre-defined filter, which
+	    returns 1 for y or Y and 0 for n or N (and works with x,
+	    <Esc>, and CTRL-C, which similarly close the popup).
+
+CpDialogTitleCommand  Cpdtc  Fpdtc()               *popped-CpDialogTitleCommand*
+------------------------------------
+This creates a |popup_dialog| with a user-determined title on the title line
+and the output of a command in the popup window.  For example, take the
+command:
+
+	:CpDialogTitleCommand echo "Working Directory  " | pwd
+
+That will return something like:
+
+	 Working Directory  X
+	  /home/kennypete
+	——————————————————————
+
+The command name, CpDialogTitleCommand, is long for ease of readability.
+Normally, it will not be typed; rather an abbreviation, or perhaps a mapping,
+will be used (the former, Cpdtc, an initialism for "Command popup dialog title
+command" is defined in vim-popped.vim as an abbreviation using |:cnoreabbrev|).
+
+The popup used in this instance is a dialog - refer |popup_dialog()|.  That
+enables some things, e.g., drag: 1, as default, which enables dragging the
+popup with a mouse.  And it means the second argument (a dictionary -
+refer |popup_create-arguments|) needs only a few options specified.
+In this instance:
+
+	(1) An 'X' is set in the top right corner (using close: "button"), and
+	(2) <Esc>, x, or CTRL-C may be used to close the popup - refer
+	    |popup_filter_yesno()| - it's a pre-defined filter that
+	    returns 1 for y or Y and 0 for n or N (and works with x,
+	    <Esc>, and CTRL-C, which similarly close the popup).
+
+CpMenuBuffers  Cpmb  Fpmb()                               *popped-CpMenuBuffers*
+---------------------------
+This creates a |popup_menu| with the output of the |buffers| command (or its
+synomyms, |ls| and |files|).  For example, take the command:
+
+	:CpMenuBuffers buffers!
+
+It will return something like:
+
+	 :buffers! >
+	    1 #a   "[No Name]"                   line 1
+<	    2u%a-  "[help.txt]"                  line 1
+	—————————————————————————————————————————————————
+
+The popup used in this instance is a menu - refer |popup_menu()|.  It lists
+all buffers (including|unlisted-buffer|s (e.g., help buffers), and others
+that do not appear without the '!' being appended).  The user may navigate
+either with hjkl or arrow keys and may choose to select one of the buffers
+listed in the popup.  As shown above, buffers are listed in precisely the
+same way as when |:buffers|or |:buffers|! is entered in the |cmdline|.
+If the user does not want to select any of the buffers, <Esc> or 'x' will
+close the popup window. If a buffer is selected from the popup menu, the
+selected buffer:
+
+	(1) If it is hidden, will be displayed in a new window spilt (in the
+	    current tab, where applicable).
+	(2) If it is not hidden (i.e., appears in any window in any tab) the
+	    cursor and view will be moved to the buffer.  When the buffer
+	    appears in more than one tab (or more than one window of one tab),
+	    the first instance found is used.
+
+The command name, CpMenuBuffers, is long for ease of readability.  Normally,
+it will not be typed; rather an abbreviation, or most likely a mapping (see
+below, <Leader>b and <Leader><S-b>, |popped-mappings|) will be used.
+The former, Cpmb, an initialism for "Command popup menu buffers" is defined
+in vim-popped.vim as an abbreviation using |:cnoreabbrev| too.
+
+==============================================================================
+4.                                                             *popped-mappings*
+MAPPINGS
+
+<Leader>b and <Leader><S-b>
+---------------------------
+Unless the user already has it mapped, <Leader><S-b> is mapped, in Normal
+mode only, to:
+>
+	:CpMenuBuffers buffers!
+<
+This is explained immediately above.
+
+Similarly, <Leader>b, unless the user already has it mapped, will be
+mapped, in Normal mode only, to:
+>
+	:CpMenuBuffers buffers
+<
+The difference between these is <Leader>b won't show |unlisted-buffer|s.
+
+gA
+--
+The second mapping is gA.  This provides an extension to the |builtin| command,
+|ga| (also |:as|[cii]).  By default, that command provides information
+about the character (and combining character(s), when applicable) under the
+cursor.  That information is the Unicode code point(s) in decimal,
+hexadecimal, and octal.
+
+The gA mapping expands on that to provide lots of additional information in
+a popup dialog window:
+
+	UTF8	The UTF8 hex values of the bytes used in the character(s)
+		(Equivalent to the |g8| command)
+	hi	Highlight group (only when applicable, otherwise blank)
+	word	The |word| under the cursor
+	WORD	The |WORD| under the cursor
+	file	The current filename. (This is blank if there's no file and 
+		is equivalent to :echo |expand|('%:t'))
+	cwd	The current working directory. (Equivalent to :echo |getcwd()|)
+
+To illustrate, gA on character ¢, literally the character in this sentence,
+will display:
+
+	 “gA”                                       X
+	  ga	<¢> 162, Hex 00a2, Oct 242, Digr Ct
+	  UTF8	c2 a2
+	  hi
+	  word	literally
+	  WORD	¢,
+	  file	vim-popped.txt
+	  cwd	...doc
+	—————————————————————————————————————————————————
+
+It will also output either the builtin (or mapped) result of the |ga| command.
+
+NOTE:	If you use T Pope's vim-characterize plugin, ga will display
+	the HTML5 named character references, emoji, Unicode name, and all
+	digraphs, when applicable.  For example, 😀, U+1F600, will display:
+
+		 “gA”                                           X
+		  ga	<😀> 128512, Hex 0001f600, Octal 373000
+		  UTF8	f0 9f 98 80
+		  hi
+		  word	😀
+		  WORD	😀,
+		  file	vim-popped.txt
+		  cwd	...doc
+		—————————————————————————————————————————————————
+	
+	And in the cmdline |statusmsg| area:
+	
+		<😀> 128512, U+1F600 GRINNING FACE, :grinning:
+
+==============================================================================
+5.                                                          *popped-borderchars*
+BORDER CHARACTERS
+
+Popups may have several options set (refer |popup_setoptions()|).  One of
+those is borderchars, which is a list with characters that are used
+for the four edges and four corners.  The example in Vim's help is:
+>
+	['-', '|', '-', '|', '┌', '┐', '┘', '└']
+<
+Those characters have the advantage of being Unicode characters that should
+display satisfactorily with most fonts:
+
+	   -	 Hyphen (U+002D)
+	   |	 Vertical line (U+007C)
+	┌ ┐ ┘ └	 Box drawing characters (U+250C, U+2510, U+2518, U+2514)
+
+The downside is that they do not join together well.  So, using those
+characters, the borders to popups do not look very contemporary, though
+depending on your setup may look okay.
+>
+  ┌---------------------┐
+  | Default borderchars |
+  └---------------------┘
+<
+To provide optionality, this plugin uses the variable g:borderchars.
+It enables the user to determine, in their .vimrc, their own border
+characters.  If g:borderchars has not been set, the following list is used
+(chosen because it is unobtrusive and should work with any font).
+It sets em dash (i.e., U+2014) for the bottom border and bottom corners,
+and a space for everything else:
+>
+	 [' ', ' ', '—', ' ', ' ', ' ', '—', '—']
+<
+Setting g:borderchars in your .vimrc is easy.  E.g., with Fira Code NFM font
+you could use this:
+>
+	let g:borderchars = ['', ' ', '', ' ', '', '', '', '']
+<
+To illustrate the result, with :CpDialogCommandTimer pwd, could look like:
+
+ 	     :pwd   X
+ 	         0.000541 seconds
+ 	     
+
+(Of course, if you're not using Fira Code NFM, those border characters may
+appear as squares, squares with question marks, squares with slashes, or some
+other default presentation.  If that's the case, this has been conceptual
+only!)
+
+If you want no border to show, that's easy too:
+>
+	let g:borderchars = [' ']
+<
+==============================================================================
+6.                                                          *vim-popped-licence*
+LICENCE
+------------------------------------------------------------------------------
+
+BSD 3-Clause License
+https://github.com/kennypete/vim-popped/blob/main/LICENCE
+Copyright © 2023 Peter Kenny
+
+ vim:filetype=help:shiftwidth=2:textwidth=79:tabstop=8:
